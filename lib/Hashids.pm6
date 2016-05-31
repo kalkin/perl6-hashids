@@ -52,23 +52,28 @@ our sub remove-str(Str $alphabet, Str $separators) {
 }
 
 method encode(*@numbers where .all() >= 0) returns Str {
-        my $alphabet = consistent-shuffle(self.alphabet, self.salt);
+        my $alphabet = $.alphabet;
         my $len-alphabet = $alphabet.chars;
         my $len-separators = self.separators.chars;
         my $values-hash =  [+]  @numbers.pairs.map: { .value % (.key + 100) };
-        my $encoded = self.alphabet.comb[$values-hash % self.alphabet.chars];
         my $lottery = self.alphabet.comb[$values-hash % self.alphabet.chars];
+        my $encoded = $lottery;
         for @numbers.kv -> $index, $number {
-            my $alphabet-salt = ($lottery ~ $!salt ~ $alphabet).comb[$len-alphabet];
+            my $alphabet-salt = play-lottery($lottery, $.salt, $alphabet);
             $alphabet = consistent-shuffle($alphabet, $alphabet-salt);
             my $last = hash($number, $alphabet);
             $encoded ~= $last;
             my $new-index = (($number % $last[0].ord) + $index) % $len-separators;
-            $encoded ~= $!separators.comb[$new-index];
+            $encoded ~= $.separators.comb[$new-index];
         }
+        $encoded = $encoded.comb[0..*-2].join;
         return $encoded if $encoded.chars >= $!min-hash-length;
         return self!ensure-length($encoded, $alphabet, $values-hash);
         die <This shouldn't happen>;
+}
+
+our sub play-lottery($lottery, $salt, $alphabet) {
+    return ($lottery ~ $salt ~ $alphabet).comb[0..^$alphabet.chars].join
 }
 
 method decode(Str $id) {
@@ -97,7 +102,6 @@ our sub hash(PositiveInt $n, Str $alphabet) returns Str {
     loop {
         $hashed = $alphabet.comb[$number % $alphabet-len] ~ $hashed;
         $number = ($number div $alphabet-len).round;
-        say($number);
         return $hashed if $number == 0;
     }
 }
