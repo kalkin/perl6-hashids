@@ -1,0 +1,17 @@
+{
+  "authors" : [
+    "Bahtiar `kalkin-` Gadimov"
+  ],
+  "build-depends" : [ ],
+  "depends" : [ ],
+  "description" : "blah blah blah",
+  "name" : "Hashids",
+  "perl" : "6.c",
+  "provides" : {
+    "Hashids" : "lib/Hashids.pm6"
+  },
+  "resources" : [ ],
+  "source-url" : "",
+  "test-depends" : [ ],
+  "version" : "*"
+}
