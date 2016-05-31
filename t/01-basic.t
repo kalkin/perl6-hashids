@@ -7,7 +7,7 @@ constant $DEFAULT_ALPHABET = ('a'…'z', 'A'…'Z', '1'…'9', '0').join;
 constant $DEFAULT_SEPARATORS = <cfhistuCFHISTU>;
 
 
-plan 6;
+plan 7;
 subtest {
     plan 5;
     is Hashids::consistent-shuffle('123', 'salt'), '231';
@@ -44,12 +44,23 @@ subtest {
 }, 'internal play-lottery function';
 
 subtest {
-    plan 3;
+    plan 4;
     my $h = Hashids.new($SALT);
     is $h.encode(123), <YDx>;
     is $h.encode(12345), <NkK9>;
-    is $h.encode(1, 2, 3), 'eGtrS8';
+    is $h.encode(1, 2, 3), <laHquq>;
+    is $h.encode(123, 456, 789), <Z8gi1DIx6>;
 }, "encode function";
+
+subtest {
+    plan 2;
+    my $alphabet = <cfhistuCFHISTU+-*/>;
+    my $h = Hashids.new($SALT, :$alphabet);
+    is $h.encode(1, 2, 3), <+-H/u/+>;
+    $alphabet = 'abdegjklmnop+-*/';
+    $h = Hashids.new($SALT, :$alphabet);
+    is $h.encode(1, 2, 3), <olb*do>;
+}, "encode with custom alphabet";
 
 subtest {
     plan 3;
