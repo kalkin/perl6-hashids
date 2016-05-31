@@ -63,11 +63,12 @@ method encode(*@numbers where .all() >= 0) returns Str {
             $alphabet = consistent-shuffle($alphabet, $alphabet-salt);
             my $last = hash($number, $alphabet);
             $encoded ~= $last;
-            my $new-index = (($number % $last[0].ord) + $index) % $len-separators;
+            my $new-index = ($number % ($last[0].ord + $index)) % $len-separators;
             $encoded ~= $.separators.comb[$new-index];
         }
         $encoded = $encoded.comb[0..*-2].join;
-        return $encoded if $encoded.chars >= $!min-hash-length;
+
+        return $encoded if $encoded.chars >= $.min-hash-length;
         return self!ensure-length($encoded, $alphabet, $values-hash);
         die <This shouldn't happen>;
 }
