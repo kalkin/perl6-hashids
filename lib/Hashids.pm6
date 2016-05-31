@@ -95,6 +95,36 @@ our sub play-lottery($lottery, $salt, $alphabet) {
 }
 
 method decode(Str $id) {
+    my $a = $.alphabet;
+    my @parts =  _split($id, $.guards);
+    my $hashid = (1 < @parts.elems < 4)  ?? @parts[1] !! @parts[0];
+    my $lottery = $hashid.comb[0];
+    $hashid = $hashid.comb[1..*].join;
+    my @hash_parts = _split($hashid, $.separators);
+    say @hash_parts;
+    my @result;
+    for @hash_parts -> $part {
+        say "-> $part";
+        my $alphabet-salt = play-lottery($lottery, $.salt, $a);
+        $a = consistent-shuffle($a, $alphabet-salt);
+        @result.append: unhash($part, $a);
+    }
+    return @result;
+}
+
+our sub _split(Str $string, $splitters){
+    my Str @parts;
+    my Str $cur = '';
+    for $string.comb -> $c {
+        if $splitters.index($c).defined {
+            @parts.append($cur);
+            $cur = '';
+        } else {
+            $cur ~= $c;
+        }
+    }
+    @parts.append: $cur;
+    return @parts;
 }
 
 method !ensure-length(Str $string, Str $alphabet, Int $values-hash) returns Str {
@@ -122,6 +152,17 @@ our sub hash(PositiveInt $n, Str $alphabet) returns Str {
         $number = ($number div $alphabet-len).round;
         return $hashed if $number == 0;
     }
+}
+
+our sub unhash(Str $hashed, $alphabet){
+    my $number = 0;
+    my $len-hash = $hashed.chars;
+    my $len-alphabet = $alphabet.chars;
+    for $hashed.comb.kv -> $i, $c {
+        my Int $pos = $alphabet.index($c);
+        $number += $pos * $len-alphabet ** ($len-hash - $i - 1);
+    }
+    return $number;
 }
 
 our sub consistent-shuffle(Str $string, Salt $salt) returns Str {

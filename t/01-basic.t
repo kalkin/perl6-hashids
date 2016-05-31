@@ -7,7 +7,7 @@ constant $DEFAULT_ALPHABET = ('a'…'z', 'A'…'Z', '1'…'9', '0').join;
 constant $DEFAULT_SEPARATORS = <cfhistuCFHISTU>;
 
 
-plan 7;
+plan 8;
 subtest {
     plan 5;
     is Hashids::consistent-shuffle('123', 'salt'), '231';
@@ -67,7 +67,7 @@ subtest {
     my $h = Hashids.new($SALT);
     is $h.decode(<YDx>), 123;
     is $h.decode(<NkK9>), 12345;
-    is $h.decode('eGtrS8'), (1,2,3);
+    is $h.decode('laHquq'), (1,2,3);
 }, "decode function";
 
 done-testing;
