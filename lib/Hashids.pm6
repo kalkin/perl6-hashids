@@ -61,7 +61,7 @@ method encode(*@numbers where .all() >= 0) returns Str {
         for @numbers.kv -> $index, $number {
             my $alphabet-salt = ($lottery ~ $!salt ~ $alphabet).comb[$len-alphabet];
             $alphabet = consistent-shuffle($alphabet, $alphabet-salt);
-            my $last = self!hash($number, $alphabet);
+            my $last = hash($number, $alphabet);
             $encoded ~= $last;
             my $new-index = (($number % $last[0].ord) + $index) % $len-separators;
             $encoded ~= $!separators.comb[$new-index];
@@ -90,13 +90,14 @@ method !ensure-length(Str $string, Str $alphabet, Int $values-hash) returns Str 
     return $encoded;
 }
 
-method !hash(PositiveInt $n, Str $alphabet) returns Str {
+our sub hash(PositiveInt $n, Str $alphabet) returns Str {
     my $number = $n;
     my $hashed = '';
     my $alphabet-len = $alphabet.chars;
     loop {
         $hashed = $alphabet.comb[$number % $alphabet-len] ~ $hashed;
-        $number = ($number / $alphabet-len).round;
+        $number = ($number div $alphabet-len).round;
+        say($number);
         return $hashed if $number == 0;
     }
 }
