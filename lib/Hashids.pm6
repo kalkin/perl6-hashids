@@ -21,19 +21,36 @@ has Str $.guards;
 
 method new(Salt $salt, Alphabet :$alphabet? = $DEFAULT_ALPHABET,
            Int :$min-hash-length? = 0, Str :$separators? = $DEFAULT_SEPARATORS) {
-    my $s = remove-str($separators, ($alphabet.comb.Bag ∖ $separators.comb.Bag).keys.join);
+    my Str $s =''; 
+    for $separators.comb -> $c {
+        $s ~= $c if $alphabet.index($c).defined;
+    }
     my $a = remove-str($alphabet, $s);
-    my $min-separators = round($a.chars / $RATIO-GUARDS);
-    if !$s || $s.elems < $min-separators {
-        $min-separators = 2 if $min-separators = 1;
+
+    my $len-separators = $s.chars;
+    my $len-alphabet = $a.chars;
+
+    if $len-alphabet + $len-separators < 16 {
+        die "Alphabet must contain at least 16 unique characters";
     }
 
     $s = consistent-shuffle($s, $salt);
-    $a = consistent-shuffle($a, $salt);
 
-    my $num-guards = round($a.chars / $RATIO-GUARDS);
+    my $min-separators = ceiling($len-alphabet / $RATIO-SEPARATORS);
+    if !$s || $len-separators < $min-separators {
+        $min-separators++ if $min-separators == 1;
+        if $min-separators > $len-separators {
+            my $split-at = $min-separators - $len-separators;
+            $s = $a.comb[0…^$split-at].join;
+            $a = $a.comb[$split-at…*].join;
+            $len-alphabet = $a.chars;
+        }
+    }
+
+    $a = consistent-shuffle($a, $salt);
+    my $num-guards = ceiling($len-alphabet / $RATIO-GUARDS);
     my Str $guards;
-    if $num-guards < 3 {
+    if $a.chars < 3 {
         $guards = $s.comb[0..^$num-guards].join;
         $s = $s.comb[$num-guards..*].join;
     } else {
