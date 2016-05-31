@@ -8,28 +8,47 @@ subset Salt of Str where .chars > 0;
 subset PositiveInt of Int where * >= 0;
 
 constant $RATIO-SEPARATORS = 3.5;
-constant $RATIO-GUARDS = 3.5;
+constant $RATIO-GUARDS = 12;
 
 constant $DEFAULT_ALPHABET = ('a'…'z', 'A'…'Z', '1'…'9', '0').join;
+constant $DEFAULT_SEPARATORS = <cfhistuCFHISTU>;
 
 has Salt $.salt;
 has Alphabet $.alphabet;
 has Int $.min-hash-length where * >= 0;
 has Str $.separators where !.comb.repeated;
+has Str $.guards;
 
 method new(Salt $salt, Alphabet :$alphabet? = $DEFAULT_ALPHABET,
-           Int :$min-hash-length? = 0, Str :$separators? = 'cfhistuCFHISTU') {
-    my $s = ($alphabet.comb.Bag ∩ $separators.comb.Bag).keys.join;
+           Int :$min-hash-length? = 0, Str :$separators? = $DEFAULT_SEPARATORS) {
+    my $s = remove-str($separators, ($alphabet.comb.Bag ∖ $separators.comb.Bag).keys.join);
+    my $a = remove-str($alphabet, $s);
+    my $min-separators = round($a.chars / $RATIO-GUARDS);
+    if !$s || $s.elems < $min-separators {
+        $min-separators = 2 if $min-separators = 1;
+    }
+
     $s = consistent-shuffle($s, $salt);
+    $a = consistent-shuffle($a, $salt);
+
+    my $num-guards = round($a.chars / $RATIO-GUARDS);
+    my Str $guards;
+    if $num-guards < 3 {
+        $guards = $s.comb[0..^$num-guards].join;
+        $s = $s.comb[$num-guards..*].join;
+    } else {
+        $guards = $a.comb[0..^$num-guards].join;
+        $a = $a.comb[$num-guards..*].join;
+    }
+    return self.bless(:$salt, :alphabet($a), :$min-hash-length, :separators($s), :$guards);
+}
+
+our sub remove-str(Str $alphabet, Str $separators) {
     my $a = "";
     for $alphabet.comb -> $c {
-        $a ~= $c unless $separators.index($c);
+        $a ~= $c unless $separators.index($c).defined;
     }
-    say round($a.chars / 12);
-    say $salt;
-    $a = consistent-shuffle($a, $salt);
-    say "===> "~$a.chars;
-    return self.bless(:$salt, :alphabet($a), :$min-hash-length, :separators($s));
+    return $a;
 }
 
 method encode(*@numbers where .all() >= 0) returns Str {
@@ -40,9 +59,7 @@ method encode(*@numbers where .all() >= 0) returns Str {
         my $encoded = self.alphabet.comb[$values-hash % self.alphabet.chars];
         my $lottery = self.alphabet.comb[$values-hash % self.alphabet.chars];
         for @numbers.kv -> $index, $number {
-            say($len-alphabet);
             my $alphabet-salt = ($lottery ~ $!salt ~ $alphabet).comb[$len-alphabet];
-            say $alphabet-salt;
             $alphabet = consistent-shuffle($alphabet, $alphabet-salt);
             my $last = self!hash($number, $alphabet);
             $encoded ~= $last;
@@ -51,11 +68,13 @@ method encode(*@numbers where .all() >= 0) returns Str {
         }
         return $encoded if $encoded.chars >= $!min-hash-length;
         return self!ensure-length($encoded, $alphabet, $values-hash);
+        die <This shouldn't happen>;
+}
 
+method decode(Str $id) {
 }
 
 method !ensure-length(Str $string, Str $alphabet, Int $values-hash) returns Str {
-    say $string;
     my $len-separators = $!separators.chars;
     my $index = ($values-hash + $string.comb[0].ord) % $len-separators;
     my $encoded = $!separators.comb[$index] ~ $string;
@@ -82,10 +101,9 @@ method !hash(PositiveInt $n, Str $alphabet) returns Str {
     }
 }
 
-sub consistent-shuffle(Str $string, Salt $salt) returns Str {
+our sub consistent-shuffle(Str $string, Salt $salt) returns Str {
     my Int $length-salt = $salt.chars;
     return $string if $length-salt == 0;
-    say "=> $string";
 
     my Int $index = 0;
     my Int $integer_sum = 0;
@@ -102,7 +120,6 @@ sub consistent-shuffle(Str $string, Salt $salt) returns Str {
         $index++;
     }
 
-    say "→ $str";
     return $str;
     
 }
