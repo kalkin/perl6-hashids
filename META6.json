@@ -4,7 +4,7 @@
   ],
   "build-depends" : [ ],
   "depends" : [ ],
-  "description" : "blah blah blah",
+  "description" : "Hashids — generate short and reversable hashes from numbers.",
   "name" : "Hashids",
   "perl" : "6.c",
   "provides" : {

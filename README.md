@@ -1,7 +1,7 @@
 NAME
 ====
 
-Hashids — generate short hashes from numbers.
+Hashids — generate short and reversable hashes from numbers.
 
 SYNOPSIS
 ========

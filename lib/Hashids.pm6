@@ -192,7 +192,7 @@ our sub consistent-shuffle(Str $string, Salt $salt) returns Str {
 
 =begin NAME
 
-Hashids — generate short hashes from numbers.
+Hashids — generate short and reversable hashes from numbers.
 
 =end NAME
 
