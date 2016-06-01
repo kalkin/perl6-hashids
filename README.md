@@ -3,6 +3,8 @@ NAME
 
 Hashids — generate short and reversable hashes from numbers.
 
+[![Build Status](https://travis-ci.org/kalkin/perl6-hashids.svg?branch=master)](https://travis-ci.org/kalkin/perl6-hashids)
+
 SYNOPSIS
 ========
 
