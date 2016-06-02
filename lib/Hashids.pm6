@@ -5,7 +5,6 @@ unit class Hashids;
 # unique characters
 subset Alphabet of Str where !.comb.repeated and .chars >= 16;
 subset Salt of Str where .chars > 0;
-subset PositiveInt of Int where * >= 0;
 
 constant $RATIO-SEPARATORS = 3.5;
 constant $RATIO-GUARDS = 12;
@@ -143,7 +142,7 @@ method !ensure-length(Str $string, Str $alphabet, Int $values-hash) returns Str 
     return $encoded;
 }
 
-our sub hash(PositiveInt $n, Str $alphabet) returns Str {
+our sub hash(UInt $n, Str $alphabet) returns Str {
     my $number = $n;
     my $hashed = '';
     my $alphabet-len = $alphabet.chars;
